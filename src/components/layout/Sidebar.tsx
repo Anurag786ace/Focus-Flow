@@ -142,7 +142,11 @@ export const Sidebar = ({
               <Button
                 key={category}
                 variant="ghost"
-                className="w-full justify-start gap-3 h-9 text-muted-foreground hover:text-foreground"
+                onClick={() => onViewChange(`category-${category}`)}
+                className={cn(
+                  "w-full justify-start gap-3 h-9",
+                  activeView === `category-${category}` && "bg-primary/10 text-primary"
+                )}
               >
                 <Folder className="h-4 w-4 shrink-0" />
                 <span>{category}</span>

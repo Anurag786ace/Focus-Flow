@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { KanbanBoard } from '@/components/task/KanbanBoard';
+import { AllTasksView } from '@/components/task/AllTasksView';
+import { CategoryView } from '@/components/task/CategoryView';
 import { TaskDialog } from '@/components/task/TaskDialog';
 import { StatsCards } from '@/components/dashboard/StatsCards';
 import { useTasks } from '@/hooks/useTasks';
@@ -38,6 +40,18 @@ const Index = () => {
     setDialogOpen(true);
   }, []);
 
+  const getTitle = () => {
+    if (activeView === 'board') return 'Task Board';
+    if (activeView === 'tasks') return 'All Tasks';
+    if (activeView === 'calendar') return 'Calendar';
+    if (activeView === 'analytics') return 'Analytics';
+    if (activeView.startsWith('category-')) {
+      const category = activeView.replace('category-', '');
+      return `${category} Tasks`;
+    }
+    return 'Tasks';
+  };
+
   const getSubtitle = () => {
     const today = new Date().toLocaleDateString('en-US', {
       weekday: 'long',
@@ -70,13 +84,16 @@ const Index = () => {
         className="min-h-screen"
       >
         <div className="p-6 lg:p-8 max-w-[1600px]">
-          <Header title="Task Board" subtitle={getSubtitle()} />
+          <Header title={getTitle()} subtitle={getSubtitle()} />
 
-          {/* Stats */}
-          <StatsCards stats={stats} />
+          {/* Stats - Show on board and all tasks view */}
+          {(activeView === 'board' || activeView === 'tasks') && (
+            <StatsCards stats={stats} />
+          )}
 
-          {/* Kanban Board */}
+          {/* View Content */}
           <AnimatePresence mode="wait">
+            {/* Kanban Board View */}
             {activeView === 'board' && (
               <motion.div
                 key="board"
@@ -95,7 +112,43 @@ const Index = () => {
               </motion.div>
             )}
 
-            {activeView !== 'board' && (
+            {/* All Tasks View */}
+            {activeView === 'tasks' && (
+              <motion.div
+                key="tasks"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <AllTasksView
+                  tasks={tasks}
+                  onEditTask={handleEditTask}
+                  onDeleteTask={deleteTask}
+                  onStatusChange={changeTaskStatus}
+                />
+              </motion.div>
+            )}
+
+            {/* Category View */}
+            {activeView.startsWith('category-') && (
+              <motion.div
+                key="category"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <CategoryView
+                  tasks={tasks}
+                  selectedCategory={activeView.replace('category-', '')}
+                  onEditTask={handleEditTask}
+                  onDeleteTask={deleteTask}
+                  onStatusChange={changeTaskStatus}
+                />
+              </motion.div>
+            )}
+
+            {/* Placeholder Views */}
+            {(activeView === 'calendar' || activeView === 'analytics') && (
               <motion.div
                 key="placeholder"
                 initial={{ opacity: 0 }}
@@ -104,7 +157,6 @@ const Index = () => {
                 className="flex flex-col items-center justify-center py-20 text-muted-foreground"
               >
                 <p className="text-lg font-medium">
-                  {activeView === 'tasks' && 'All Tasks View'}
                   {activeView === 'calendar' && 'Calendar View'}
                   {activeView === 'analytics' && 'Analytics Dashboard'}
                 </p>
